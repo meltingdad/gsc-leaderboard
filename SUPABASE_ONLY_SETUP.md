@@ -37,7 +37,7 @@
 1. Go to [supabase.com](https://supabase.com) and sign in
 2. Click **"New Project"**
 3. Fill in details:
-   - **Name**: `gsc-leaderboard`
+   - **Name**: `gsc-arena`
    - **Database Password**: Generate and save it
    - **Region**: Closest to you
 4. Click **"Create project"** and wait (2-3 minutes)

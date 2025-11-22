@@ -210,7 +210,7 @@ export default function Home() {
                     <Twitter className="h-5 w-5" />
                   </a>
                   <a
-                    href="https://github.com/meltingdad/gsc-leaderboard"
+                    href="https://github.com/meltingdad/gsc-arena"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all hover:glow-cyan"

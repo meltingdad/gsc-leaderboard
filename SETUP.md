@@ -17,7 +17,7 @@ Complete setup instructions for the Google Search Console Leaderboard.
 1. Go to [supabase.com](https://supabase.com) and sign in
 2. Click **"New Project"**
 3. Fill in the details:
-   - Project name: `gsc-leaderboard` (or your preferred name)
+   - Project name: `gsc-arena` (or your preferred name)
    - Database password: Generate a strong password and **save it**
    - Region: Choose closest to your location
 4. Click **"Create new project"** and wait for it to initialize

@@ -14,7 +14,7 @@ Before deploying, make sure you have:
    - Google OAuth configured in Supabase Auth
 
 2. ✅ **GitHub repository** pushed:
-   - Repository: `https://github.com/meltingdad/gsc-leaderboard`
+   - Repository: `https://github.com/meltingdad/gsc-arena`
 
 3. ✅ **Google Cloud OAuth** credentials ready:
    - Client ID
@@ -29,7 +29,7 @@ Before deploying, make sure you have:
 2. **Sign in** with your GitHub account (meltingdad)
 3. Click **"Add New..."** → **"Project"**
 4. **Import your repository**:
-   - Find `meltingdad/gsc-leaderboard`
+   - Find `meltingdad/gsc-arena`
    - Click **"Import"**
 
 ---
@@ -95,7 +95,7 @@ Expected build output:
 
 Once deployed, Vercel will provide:
 
-- **Production URL**: `https://gsc-leaderboard.vercel.app`
+- **Production URL**: `https://gsc-arena.vercel.app`
 - Or custom domain if you add one
 
 **Save this URL** - you'll need it for the next steps!
@@ -109,7 +109,7 @@ Go to your **Supabase Dashboard**:
 1. Navigate to **Authentication** → **URL Configuration**
 2. Update **Site URL** to your Vercel URL:
    ```
-   https://gsc-leaderboard.vercel.app
+   https://gsc-arena.vercel.app
    ```
 
 3. Add to **Redirect URLs** (keep localhost too):
@@ -117,9 +117,9 @@ Go to your **Supabase Dashboard**:
    http://localhost:3000
    http://localhost:3000/**
    http://localhost:3000/auth/callback
-   https://gsc-leaderboard.vercel.app
-   https://gsc-leaderboard.vercel.app/**
-   https://gsc-leaderboard.vercel.app/auth/callback
+   https://gsc-arena.vercel.app
+   https://gsc-arena.vercel.app/**
+   https://gsc-arena.vercel.app/auth/callback
    ```
 
 4. Click **"Save"**
@@ -145,7 +145,7 @@ Go to **Google Cloud Console**: https://console.cloud.google.com
 
 ## Step 8: Test Your Deployment 🎉
 
-1. **Visit your production URL**: `https://gsc-leaderboard.vercel.app`
+1. **Visit your production URL**: `https://gsc-arena.vercel.app`
 2. **Test authentication**:
    - Click **"ENTER"** or **"Add Site"**
    - You should be redirected to Google OAuth
@@ -273,7 +273,7 @@ Before going live:
 
 ## Next Steps After Deployment
 
-1. **Share your link**: `https://gsc-leaderboard.vercel.app`
+1. **Share your link**: `https://gsc-arena.vercel.app`
 2. **Monitor usage** in Vercel and Supabase dashboards
 3. **Add features** from the roadmap
 4. **Invite users** to join the leaderboard
@@ -296,4 +296,4 @@ Before going live:
 
 **Your app is now live! 🚀**
 
-**Enter the arena at**: `https://gsc-leaderboard.vercel.app`
+**Enter the arena at**: `https://gsc-arena.vercel.app`
