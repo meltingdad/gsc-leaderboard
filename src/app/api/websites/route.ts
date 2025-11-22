@@ -1,46 +1,55 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
 import { google } from 'googleapis'
-import { prisma } from '@/lib/prisma'
 
 // Get all websites for leaderboard
 export async function GET() {
   try {
-    const websites = await prisma.website.findMany({
-      include: {
-        metrics: {
-          orderBy: { lastUpdated: 'desc' },
-          take: 1,
-        },
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    })
+    const supabase = await createClient()
+
+    // Fetch all websites with their latest metrics
+    const { data: websites, error } = await supabase
+      .from('websites')
+      .select(`
+        id,
+        domain,
+        site_url,
+        user_id,
+        metrics (
+          id,
+          total_clicks,
+          total_impressions,
+          average_ctr,
+          average_position,
+          last_updated
+        )
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      throw error
+    }
 
     // Format data for leaderboard
-    const leaderboardData = websites
-      .map((website) => {
-        const latestMetric = website.metrics[0]
+    const leaderboardData = (websites || [])
+      .map((website: any) => {
+        // Get the latest metric (metrics are already ordered by last_updated desc in the query)
+        const latestMetric = website.metrics?.[0]
         if (!latestMetric) return null
 
         return {
           id: website.id,
           domain: website.domain,
-          clicks: latestMetric.totalClicks,
-          impressions: latestMetric.totalImpressions,
-          ctr: latestMetric.averageCtr,
-          position: latestMetric.averagePosition,
-          lastUpdated: latestMetric.lastUpdated,
+          clicks: latestMetric.total_clicks,
+          impressions: latestMetric.total_impressions,
+          ctr: latestMetric.average_ctr,
+          position: latestMetric.average_position,
+          lastUpdated: latestMetric.last_updated,
         }
       })
       .filter(Boolean)
-      .sort((a, b) => (b?.clicks || 0) - (a?.clicks || 0))
-      .map((entry, index) => ({
+      .sort((a: any, b: any) => (b?.clicks || 0) - (a?.clicks || 0))
+      .map((entry: any, index: number) => ({
         ...entry,
         rank: index + 1,
       }))
@@ -58,9 +67,12 @@ export async function GET() {
 // Add a new website to the leaderboard
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const supabase = await createClient()
 
-    if (!session?.user?.email) {
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -70,35 +82,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Site URL is required' }, { status: 400 })
     }
 
-    // Get user's Google tokens
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: {
-        id: true,
-        googleAccessToken: true,
-        googleRefreshToken: true,
-      },
-    })
-
-    if (!user?.googleAccessToken) {
-      return NextResponse.json(
-        { error: 'No Google access token found' },
-        { status: 400 }
-      )
-    }
-
     // Extract domain from siteUrl
     const domain = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')
 
     // Check if website already exists
-    const existingWebsite = await prisma.website.findUnique({
-      where: { domain },
-    })
+    const { data: existingWebsite } = await supabase
+      .from('websites')
+      .select('id')
+      .eq('domain', domain)
+      .single()
 
     if (existingWebsite) {
       return NextResponse.json(
         { error: 'This website is already in the leaderboard' },
         { status: 409 }
+      )
+    }
+
+    // Get user's Google tokens
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('user_tokens')
+      .select('google_access_token, google_refresh_token')
+      .eq('user_id', user.id)
+      .single()
+
+    if (tokenError || !tokenData?.google_access_token) {
+      return NextResponse.json(
+        { error: 'No Google access token found. Please sign in with Google.' },
+        { status: 400 }
       )
     }
 
@@ -109,8 +120,8 @@ export async function POST(request: Request) {
     )
 
     oauth2Client.setCredentials({
-      access_token: user.googleAccessToken,
-      refresh_token: user.googleRefreshToken,
+      access_token: tokenData.google_access_token,
+      refresh_token: tokenData.google_refresh_token,
     })
 
     // Get Search Console service
@@ -142,31 +153,48 @@ export async function POST(request: Request) {
         ? rows.reduce((sum, row) => sum + (row.position || 0), 0) / rows.length
         : 0
 
-    // Create website and metrics in database
-    const website = await prisma.website.create({
-      data: {
-        userId: user.id,
+    // Create website in database
+    const { data: website, error: websiteError } = await supabase
+      .from('websites')
+      .insert({
+        user_id: user.id,
         domain,
-        siteUrl,
-        metrics: {
-          create: {
-            totalClicks,
-            totalImpressions,
-            averageCtr,
-            averagePosition,
-            dateRange: 'last_28_days',
-            lastUpdated: new Date(),
-          },
-        },
-      },
-      include: {
-        metrics: true,
-      },
-    })
+        site_url: siteUrl,
+      })
+      .select()
+      .single()
+
+    if (websiteError) {
+      throw websiteError
+    }
+
+    // Create metrics for the website
+    const { data: metrics, error: metricsError } = await supabase
+      .from('metrics')
+      .insert({
+        website_id: website.id,
+        total_clicks: totalClicks,
+        total_impressions: totalImpressions,
+        average_ctr: averageCtr,
+        average_position: averagePosition,
+        date_range: 'last_28_days',
+        last_updated: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (metricsError) {
+      // Rollback: delete the website if metrics creation fails
+      await supabase.from('websites').delete().eq('id', website.id)
+      throw metricsError
+    }
 
     return NextResponse.json({
       success: true,
-      website,
+      website: {
+        ...website,
+        metrics: [metrics],
+      },
       message: 'Website added to leaderboard successfully!',
     })
   } catch (error: any) {

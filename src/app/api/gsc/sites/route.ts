@@ -1,29 +1,28 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
 import { google } from 'googleapis'
-import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const supabase = await createClient()
 
-    if (!session?.user?.email) {
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's Google tokens
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: {
-        googleAccessToken: true,
-        googleRefreshToken: true,
-      },
-    })
+    // Get user's Google tokens from database
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('user_tokens')
+      .select('google_access_token, google_refresh_token')
+      .eq('user_id', user.id)
+      .single()
 
-    if (!user?.googleAccessToken) {
+    if (tokenError || !tokenData?.google_access_token) {
       return NextResponse.json(
-        { error: 'No Google access token found' },
+        { error: 'No Google access token found. Please sign in with Google.' },
         { status: 400 }
       )
     }
@@ -35,8 +34,8 @@ export async function GET() {
     )
 
     oauth2Client.setCredentials({
-      access_token: user.googleAccessToken,
-      refresh_token: user.googleRefreshToken,
+      access_token: tokenData.google_access_token,
+      refresh_token: tokenData.google_refresh_token,
     })
 
     // Get Search Console service
