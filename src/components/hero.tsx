@@ -21,6 +21,7 @@ interface Stats {
     position: number
     lastUpdated: string
     anonymous: boolean
+    faviconUrl: string | null
   } | null
 }
 
@@ -227,14 +228,27 @@ export function Hero() {
                         <div className="flex items-center justify-between pb-4 border-b border-slate-700">
                           <div>
                             <p className="text-xs font-mono text-slate-400 uppercase tracking-wider">Top Performer</p>
-                            <h3 className="text-2xl font-bold text-white mt-1 font-display">
+                            <h3 className="text-2xl font-bold text-white mt-1 font-display flex items-center gap-2">
                               {stats.topPerformer.anonymous ? (
                                 <>
                                   <span className="blur-sm select-none">••••••••••••</span>
                                   <span className="ml-2 text-xs text-purple-400 font-mono">(ANONYMOUS)</span>
                                 </>
                               ) : (
-                                stats.topPerformer.domain
+                                <>
+                                  {stats.topPerformer.faviconUrl && (
+                                    <img
+                                      src={stats.topPerformer.faviconUrl}
+                                      alt=""
+                                      className="w-6 h-6 flex-shrink-0"
+                                      onError={(e) => {
+                                        // Hide favicon if it fails to load
+                                        e.currentTarget.style.display = 'none'
+                                      }}
+                                    />
+                                  )}
+                                  <span>{stats.topPerformer.domain}</span>
+                                </>
                               )}
                             </h3>
                           </div>

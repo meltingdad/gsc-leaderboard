@@ -41,6 +41,7 @@ export async function GET() {
         domain,
         site_url,
         anonymous,
+        favicon_url,
         metrics (
           total_clicks,
           total_impressions,
@@ -69,6 +70,7 @@ export async function GET() {
           position: latestMetric.average_position,
           lastUpdated: latestMetric.last_updated,
           anonymous: website.anonymous || false,
+          faviconUrl: website.favicon_url || null,
         }
       }
     })
