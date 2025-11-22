@@ -13,10 +13,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch only the current user's websites with original_site_url
+    // Fetch only the current user's websites with site_hash for matching
     const { data: websites, error } = await supabase
       .from('websites')
-      .select('id, original_site_url, domain, anonymous')
+      .select('id, site_hash, original_site_url, domain, anonymous')
       .eq('user_id', user.id)
 
     if (error) {

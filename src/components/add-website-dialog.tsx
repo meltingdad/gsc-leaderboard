@@ -24,11 +24,14 @@ interface AddWebsiteDialogProps {
 interface GSCSite {
   siteUrl: string
   permissionLevel: string
+  computedHash?: string
 }
 
 interface LeaderboardSite {
   domain: string
   site_url: string
+  site_hash?: string
+  original_site_url?: string
 }
 
 export function AddWebsiteDialog({ open, onOpenChange, user }: AddWebsiteDialogProps) {
@@ -65,14 +68,43 @@ export function AddWebsiteDialog({ open, onOpenChange, user }: AddWebsiteDialogP
         throw new Error(gscData.error || 'Failed to fetch sites')
       }
 
-      // Extract original_site_url from user's sites for comparison
-      // This works for both public and anonymous submissions
-      const existingSiteUrls = new Set<string>(
-        (myWebsitesData.data || []).map((site: any) => site.original_site_url || site.domain)
+      // Build a set of existing site identifiers (hash-based for new entries, URL-based for legacy)
+      const existingSiteIdentifiers = new Set<string>()
+
+      for (const site of myWebsitesData.data || []) {
+        // Add site_hash if available (new hash-based matching)
+        if (site.site_hash) {
+          existingSiteIdentifiers.add(site.site_hash)
+        }
+        // Fallback: add original_site_url for backwards compatibility
+        if (site.original_site_url) {
+          existingSiteIdentifiers.add(site.original_site_url)
+        }
+        // Fallback: add domain for very old entries
+        if (site.domain) {
+          existingSiteIdentifiers.add(site.domain)
+        }
+      }
+
+      // Compute hashes for all GSC sites
+      const gscSitesWithHashes = await Promise.all(
+        (gscData.sites || []).map(async (site: GSCSite) => {
+          // Compute hash for this site
+          const textEncoder = new TextEncoder()
+          const hashData = textEncoder.encode(`${user?.id}:${site.siteUrl}`)
+          const hashBuffer = await crypto.subtle.digest('SHA-256', hashData)
+          const hashArray = Array.from(new Uint8Array(hashBuffer))
+          const siteHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+          return {
+            ...site,
+            computedHash: siteHash,
+          }
+        })
       )
 
-      setSites(gscData.sites || [])
-      setExistingSites(existingSiteUrls)
+      setSites(gscSitesWithHashes)
+      setExistingSites(existingSiteIdentifiers)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -218,7 +250,10 @@ export function AddWebsiteDialog({ open, onOpenChange, user }: AddWebsiteDialogP
           ) : (
             <div className="space-y-3 max-h-[400px] overflow-y-auto">
               {sites.map((site) => {
-                const isAlreadyAdded = existingSites.has(site.siteUrl)
+                // Check if already added by hash (primary) or URL (fallback)
+                const isAlreadyAdded =
+                  (site.computedHash && existingSites.has(site.computedHash)) ||
+                  existingSites.has(site.siteUrl)
 
                 return (
                   <div

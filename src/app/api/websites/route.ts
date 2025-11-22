@@ -90,11 +90,18 @@ export async function POST(request: Request) {
     const domain = anonymous ? crypto.randomUUID() : extractDomain(siteUrl)
     const storedSiteUrl = anonymous ? crypto.randomUUID() : siteUrl
 
-    // Check if website already exists (check by original_site_url to catch both public and anonymous)
+    // Generate hash for matching (used for both public and anonymous for consistency)
+    const textEncoder = new TextEncoder()
+    const hashData = textEncoder.encode(`${user.id}:${siteUrl}`)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', hashData)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const siteHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    // Check if website already exists (check by hash)
     const { data: existingWebsite } = await supabase
       .from('websites')
       .select('id')
-      .or(`original_site_url.eq.${siteUrl},domain.eq.${extractDomain(siteUrl)}`)
+      .eq('site_hash', siteHash)
       .maybeSingle()
 
     if (existingWebsite) {
@@ -159,13 +166,16 @@ export async function POST(request: Request) {
         : 0
 
     // Create website in database
+    // For anonymous sites: do NOT store original_site_url (privacy requirement)
+    // For public sites: store original_site_url for backwards compatibility
     const { data: website, error: websiteError } = await supabase
       .from('websites')
       .insert({
         user_id: user.id,
         domain,
         site_url: storedSiteUrl,
-        original_site_url: siteUrl, // Always store original for matching/removal
+        site_hash: siteHash, // Hash-based matching for all sites
+        original_site_url: anonymous ? null : siteUrl, // Only store for public sites
         anonymous,
       })
       .select()
@@ -231,15 +241,21 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Site URL is required' }, { status: 400 })
     }
 
-    // Extract clean domain from siteUrl
-    const cleanedDomain = extractDomain(siteUrl)
+    // Generate hash for matching
+    const textEncoder = new TextEncoder()
+    const hashData = textEncoder.encode(`${user.id}:${siteUrl}`)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', hashData)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const siteHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 
     // Check if website exists and belongs to the user
-    // Search by original_site_url (for anonymous sites), cleaned domain, or site_url (for old data)
+    // Primary: use site_hash (works for both public and anonymous)
+    // Fallback: use original_site_url or domain for backwards compatibility
+    const cleanedDomain = extractDomain(siteUrl)
     const { data: websites, error: findError } = await supabase
       .from('websites')
       .select('id, user_id, domain')
-      .or(`original_site_url.eq.${siteUrl},domain.eq.${cleanedDomain},domain.eq.${siteUrl},site_url.eq.${siteUrl}`)
+      .or(`site_hash.eq.${siteHash},original_site_url.eq.${siteUrl},domain.eq.${cleanedDomain},domain.eq.${siteUrl},site_url.eq.${siteUrl}`)
 
     if (findError) {
       console.error('Error finding website:', findError)
