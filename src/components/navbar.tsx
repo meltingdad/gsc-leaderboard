@@ -117,13 +117,13 @@ export function Navbar() {
                   <Button
                     onClick={handleAddWebsite}
                     size="sm"
-                    className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold font-mono uppercase tracking-wide transition-all duration-300 hover:glow-cyan"
+                    className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold font-mono uppercase tracking-wide transition-all duration-300 hover:glow-cyan cursor-pointer"
                   >
                     Add/Remove Site
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="relative group">
+                      <button className="relative group cursor-pointer">
                         <div className="absolute inset-0 bg-cyan-500 blur-md opacity-0 group-hover:opacity-50 transition-opacity rounded-full" />
                         <Avatar className="relative h-8 w-8 border-2 border-slate-700 group-hover:border-cyan-500 transition-colors">
                           <AvatarImage src={user.user_metadata?.avatar_url || undefined} />
@@ -156,7 +156,7 @@ export function Navbar() {
                 <Button
                   onClick={handleAddWebsite}
                   size="sm"
-                  className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold font-mono uppercase tracking-wide transition-all duration-300 hover:glow-cyan"
+                  className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold font-mono uppercase tracking-wide transition-all duration-300 hover:glow-cyan cursor-pointer"
                 >
                   Enter
                 </Button>

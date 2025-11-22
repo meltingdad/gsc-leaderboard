@@ -137,7 +137,7 @@ export function Hero() {
                   <Button
                     size="lg"
                     onClick={handleAddWebsite}
-                    className="group relative overflow-hidden bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-lg px-8 h-14 glow-cyan transition-all duration-300 hover:scale-105"
+                    className="group relative overflow-hidden bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold text-lg px-8 h-14 glow-cyan transition-all duration-300 hover:scale-105 cursor-pointer"
                   >
                     <span className="relative z-10 flex items-center gap-2">
                       <Trophy className="h-5 w-5" />
