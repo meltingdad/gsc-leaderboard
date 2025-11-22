@@ -43,6 +43,7 @@ export function Navbar() {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'openid email profile https://www.googleapis.com/auth/webmasters.readonly',
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
