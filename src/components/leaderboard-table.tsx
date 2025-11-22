@@ -120,10 +120,10 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
             <SortButton field="impressions" label="Impressions" icon={Eye} />
           </div>
           <div className="text-right">
-            <SortButton field="ctr" label="Average CTR" icon={TrendingUp} />
+            <SortButton field="ctr" label="AVG CTR" icon={TrendingUp} />
           </div>
           <div className="text-right">
-            <SortButton field="position" label="Average Position" icon={Target} />
+            <SortButton field="position" label="AVG Position" icon={Target} />
           </div>
           <div className="text-right font-mono uppercase text-xs tracking-wider text-slate-400">
             Updated
