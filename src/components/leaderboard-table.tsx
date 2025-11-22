@@ -17,6 +17,7 @@ interface LeaderboardEntry {
   position: number
   lastUpdated: Date
   anonymous: boolean
+  faviconUrl: string | null
 }
 
 interface LeaderboardTableProps {
@@ -153,14 +154,27 @@ export function LeaderboardTable({ data }: LeaderboardTableProps) {
                 <div>{getRankBadge(entry.rank)}</div>
 
                 {/* Domain */}
-                <div className="font-display font-bold text-white text-lg truncate group-hover:text-cyan-400 transition-colors">
+                <div className="flex items-center gap-2 font-display font-bold text-white text-lg truncate group-hover:text-cyan-400 transition-colors">
                   {entry.anonymous ? (
                     <>
                       <span className="blur-sm select-none">••••••••••••</span>
                       <span className="ml-2 text-xs text-purple-400 font-mono">(ANONYMOUS)</span>
                     </>
                   ) : (
-                    entry.domain
+                    <>
+                      {entry.faviconUrl && (
+                        <img
+                          src={entry.faviconUrl}
+                          alt=""
+                          className="w-5 h-5 flex-shrink-0"
+                          onError={(e) => {
+                            // Hide favicon if it fails to load
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      )}
+                      <span className="truncate">{entry.domain}</span>
+                    </>
                   )}
                 </div>
 

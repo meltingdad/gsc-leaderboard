@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS websites (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   domain TEXT UNIQUE NOT NULL,
   site_url TEXT NOT NULL,
+  anonymous BOOLEAN DEFAULT FALSE NOT NULL,
+  original_site_url TEXT,
+  site_hash TEXT,
+  favicon_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -27,6 +31,10 @@ CREATE TABLE IF NOT EXISTS metrics (
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_websites_user_id ON websites(user_id);
 CREATE INDEX IF NOT EXISTS idx_websites_domain ON websites(domain);
+CREATE INDEX IF NOT EXISTS idx_websites_anonymous ON websites(anonymous);
+CREATE INDEX IF NOT EXISTS idx_websites_original_site_url ON websites(original_site_url);
+CREATE INDEX IF NOT EXISTS idx_websites_site_hash ON websites(site_hash);
+CREATE INDEX IF NOT EXISTS idx_websites_favicon_url ON websites(favicon_url) WHERE favicon_url IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_metrics_website_id ON metrics(website_id);
 CREATE INDEX IF NOT EXISTS idx_metrics_last_updated ON metrics(last_updated DESC);
 
@@ -97,6 +105,8 @@ SELECT
   w.id,
   w.domain,
   w.site_url,
+  w.anonymous,
+  w.favicon_url,
   m.total_clicks,
   m.total_impressions,
   m.average_ctr,

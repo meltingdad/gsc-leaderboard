@@ -18,6 +18,7 @@ export async function GET() {
         site_url,
         user_id,
         anonymous,
+        favicon_url,
         metrics (
           id,
           total_clicks,
@@ -62,6 +63,7 @@ export async function GET() {
           position: latestMetric.average_position,
           lastUpdated: latestMetric.last_updated,
           anonymous: website.anonymous || false,
+          faviconUrl: website.favicon_url || null,
         }
       })
       .filter(Boolean)
@@ -105,6 +107,10 @@ export async function POST(request: Request) {
     // For public sites, extract the clean domain
     const domain = anonymous ? crypto.randomUUID() : extractDomain(siteUrl)
     const storedSiteUrl = anonymous ? crypto.randomUUID() : siteUrl
+
+    // Fetch favicon for non-anonymous sites
+    // Use Google's favicon service for reliability
+    const faviconUrl = anonymous ? null : `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
 
     // Generate hash for matching (used for both public and anonymous for consistency)
     const textEncoder = new TextEncoder()
@@ -193,6 +199,7 @@ export async function POST(request: Request) {
         site_hash: siteHash, // Hash-based matching for all sites
         original_site_url: anonymous ? null : siteUrl, // Only store for public sites
         anonymous,
+        favicon_url: faviconUrl, // Favicon URL (NULL for anonymous sites)
       })
       .select()
       .single()
