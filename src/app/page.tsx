@@ -201,13 +201,17 @@ export default function Home() {
                 </h3>
                 <div className="flex gap-4">
                   <a
-                    href="#"
+                    href="https://x.com/meltingdad"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all hover:glow-cyan"
                   >
                     <Twitter className="h-5 w-5" />
                   </a>
                   <a
-                    href="#"
+                    href="https://github.com/meltingdad/gsc-leaderboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all hover:glow-cyan"
                   >
                     <Github className="h-5 w-5" />
