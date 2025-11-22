@@ -20,6 +20,7 @@ interface LeaderboardEntry {
   position: number
   lastUpdated: Date
   anonymous: boolean
+  faviconUrl: string | null
 }
 
 export default function Home() {
